@@ -17,7 +17,7 @@
 <div class="audio-player" aria-label="FilePrint audio player">
 <div class="audio-screen"><canvas id="audioCanvas" width="1024" height="220" aria-label="Live audio waveform"></canvas><button id="displayMode" type="button">Waveform</button></div>
 <div class="beats" id="beats" aria-label="16-step beat position"></div>
-<div class="player-controls"><button class="button secondary" id="playButton" aria-pressed="false">Play sound</button><div class="volume-row"><label for="volume">Volume</label><input id="volume" type="range" min="0" max="100" value="25"></div><span id="audioStatus" role="status"></span></div>
+<div class="player-controls"><button class="button secondary" id="playButton" aria-pressed="false">Play sound</button><div class="volume-row"><label for="volume">Volume</label><input id="volume" type="range" min="0" max="100" value="25"></div><div class="wave-options" role="group" aria-label="Binaural beats"><button type="button" data-wave="delta" aria-pressed="false">Delta</button><button type="button" data-wave="theta" aria-pressed="false">Theta</button><button type="button" data-wave="alpha" aria-pressed="true">Alpha</button><button type="button" data-wave="beta" aria-pressed="false">Beta</button><button type="button" data-wave="gamma" aria-pressed="false">Gamma</button></div><div class="volume-row tone-volume"><label for="toneVolume">Beats</label><input id="toneVolume" aria-label="Binaural beats volume" type="range" min="0" max="100" value="35"></div><span id="audioStatus" role="status"></span></div>
 
 
 </div>

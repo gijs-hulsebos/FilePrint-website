@@ -1,6 +1,6 @@
 import { compileVisual, drawTile, drawScene } from "../vendor/fileprint/core/engines";
 import { canonicalTags } from "../vendor/fileprint/core/tags";
-import { AudioPlayer } from "../vendor/fileprint/audio";
+import { AudioPlayer, WAVES, type Wave } from "../vendor/fileprint/audio";
 
 const $ = (id: string) => document.getElementById(id)!;
 const canvas = $("fingerprint") as HTMLCanvasElement;
@@ -138,3 +138,13 @@ for (const id of ["volume", "demoVolume"]) {
     player.setVolume(Number(value) / 100);
   });
 }
+document.querySelectorAll<HTMLButtonElement>("[data-wave]").forEach(button => {
+  const wave = button.dataset.wave as Wave;
+  button.title = WAVES[wave] + " Hz stereo difference";
+  button.addEventListener("click", () => {
+    const selected = player.experience.waves;
+    player.setExperience({ waves: selected.includes(wave) ? selected.filter(w => w !== wave) : [...selected, wave] });
+    document.querySelectorAll<HTMLButtonElement>("[data-wave]").forEach(b => b.setAttribute("aria-pressed", String(player.experience.waves.includes(b.dataset.wave as Wave))));
+  });
+});
+($("toneVolume") as HTMLInputElement).addEventListener("input", e => player.setExperience({toneVolume:Number((e.target as HTMLInputElement).value)/100}));
