@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d0b12">
+  <meta name="description" content="FilePrint gives your Obsidian notes a unique visual and sonic identity from their nested tags.">
+  <title>FilePrint — Hear and see your notes</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d0b12'/%3E%3Cpath d='M17 38c8-22 17 16 30-12M17 29c9-15 18 18 30 4' fill='none' stroke='%23a98cff' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="install.css">
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="#top" aria-label="FilePrint home"><span class="brand-mark">〽</span><span>FilePrint</span></a>
+    <div class="nav-links"><a href="#how">How it works</a><a href="#privacy">Privacy</a><a class="button button-ghost" href="#install">Install guide ↓</a></div>
+  </nav>
+
+  <main id="top">
+    <section class="hero shell">
+      <div class="hero-copy">
+        <div class="eyebrow"><span></span> Obsidian community plugin</div>
+        <h1>Your notes have a<br><em>fingerprint.</em></h1>
+        <p class="lede">FilePrint turns nested tags into related procedural sound and generative visuals—privately, locally, and differently for every note.</p>
+        <div class="actions"><a class="button button-primary" href="#install">Install FilePrint <span>↓</span></a><a class="text-link" href="#demo">Try the fingerprint <span>→</span></a></div>
+        <div class="trust"><span>● Local-first</span><span>● Open source</span><span>● No telemetry</span></div>
+      </div>
+
+      <div class="demo-wrap" id="demo">
+        <div class="window">
+          <div class="window-top"><div class="dots"><i></i><i></i><i></i></div><span>FIELD NOTES.md</span><b>•••</b></div>
+          <div class="workspace">
+            <aside><span class="folder">⌄ FIELD NOTES</span><span>◈ Biology</span><span class="active">◈ Mycelium</span><span>◈ Forest systems</span><span>◈ Reading list</span></aside>
+            <article class="note">
+              <span class="crumb">field-notes / biology</span>
+              <h2>Mycelium networks</h2>
+              <p>Fungal networks connect roots and move nutrients through the forest floor.</p>
+              <button class="tag-pill" id="tagButton" aria-label="Change nested tag">#nature/fungi/mycelium <span>⌄</span></button>
+              <div class="tag-menu" id="tagMenu" role="menu">
+                <button data-tag="#nature/fungi/mycelium">#nature/fungi/mycelium</button>
+                <button data-tag="#nature/fungi/lichen">#nature/fungi/lichen</button>
+                <button data-tag="#nature/botany/ferns">#nature/botany/ferns</button>
+                <button data-tag="#projects/audio/fieldwork">#projects/audio/fieldwork</button>
+              </div>
+            </article>
+            <section class="fingerprint-panel">
+              <div class="panel-head"><span>FILEPRINT</span><span id="tagLabel">#nature/fungi/mycelium</span></div>
+              <canvas id="fingerprint" width="760" height="620" aria-label="Generated visual fingerprint"></canvas>
+              <div class="audio-row"><button id="playButton" class="play" aria-label="Play generated sound">▶</button><div class="wave" id="wave" aria-hidden="true"></div><span id="duration">08:07</span></div>
+              <p class="hint">Choose a tag or play its sound. Everything happens in this browser.</p>
+            </section>
+          </div>
+        </div>
+        <div class="float-card float-one"><span>visual seed</span><strong>84F2—C91A</strong></div>
+        <div class="float-card float-two"><span>shared ancestry</span><strong>nature / fungi</strong></div>
+      </div>
+    </section>
+
+    <section class="marquee" aria-label="Plugin benefits"><div>YOUR TAGS, MADE VISIBLE <i>✦</i> YOUR NOTES, MADE AUDIBLE <i>✦</i> ONE VAULT, INFINITE IDENTITIES <i>✦</i></div></section>
+
+    <section class="section shell" id="how">
+      <div class="section-intro"><span class="kicker">01 / THE IDEA</span><h2>Related notes.<br><em>Related fingerprints.</em></h2><p>FilePrint reads the hierarchy you already use. Shared tag roots create a family resemblance—while every note keeps its own identity.</p></div>
+      <div class="steps">
+        <article><span class="num">01</span><div class="step-icon">#</div><h3>Tag naturally</h3><p>Keep using nested tags like <code>#learning/science/physics</code>. No special structure required.</p></article>
+        <article><span class="num">02</span><div class="step-icon">⌁</div><h3>Open FilePrint</h3><p>Use the command palette, ribbon icon, sidebar, or embed a fingerprint in a note.</p></article>
+        <article><span class="num">03</span><div class="step-icon">◉</div><h3>See and hear</h3><p>A deterministic visual and short loop are generated on demand, entirely on your device.</p></article>
+      </div>
+    </section>
+
+    <section class="privacy-section" id="privacy">
+      <div class="shell privacy-grid"><div><span class="kicker">02 / PRIVATE BY DESIGN</span><h2>Your vault stays<br><em>your vault.</em></h2></div><div class="privacy-copy"><p>FilePrint needs no account, API key, remote service, or whole-vault scan. It generates only when you ask and sends nothing away.</p><div class="privacy-list"><span><i>✓</i> No runtime network requests</span><span><i>✓</i> No analytics or telemetry</span><span><i>✓</i> No generated files in your vault</span><span><i>✓</i> MIT licensed</span></div></div></div>
+      <div class="orbit" aria-hidden="true"><span>LOCAL</span><span>PRIVATE</span><span>DETERMINISTIC</span></div>
+    </section>
+
+    <section class="install shell" id="install">
+      <div><span class="kicker">03 / GET FILEPRINT</span><h2>Give every note<br>a distinct pulse.</h2></div>
+      <div class="install-card"><div class="status"><i></i><span>Early release · v0.1.0</span></div><p>FilePrint is currently available for manual installation. Place <code>main.js</code>, <code>manifest.json</code>, and <code>styles.css</code> in:</p><button class="path-copy" id="copyPath" data-path="&lt;your-vault&gt;/.obsidian/plugins/fileprint/">&lt;your-vault&gt;/.obsidian/plugins/fileprint/ <span>Copy</span></button><a class="button button-primary" href="#how">Explore how it works ↑</a><small>Free and open source · Works on desktop and mobile</small></div>
+    </section>
+  </main>
+
+  <footer class="shell"><a class="brand" href="#top"><span class="brand-mark">〽</span><span>FilePrint</span></a><p>Procedural identity for your Obsidian notes.</p><span>MIT · 2026</span></footer>
+  <script src="script.js"></script>
+</body>
+</html>
