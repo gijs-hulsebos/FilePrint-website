@@ -14,17 +14,17 @@ const player = new AudioPlayer(.25);
 const owner = {};
 let tag = "#nature/fungi/mycelium";
 let params: ReturnType<typeof compileVisual>;
-let frame = 0, phase = 0, last = 0, visible = true, animated = false;
+let frame = 0, phase = 0, last = 0, visible = true, animated = true;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
 
 function draw() {
-  drawScene(ctx, canvas.width, canvas.height, phase % 1, params, false, 1, tile, 1);
+  drawScene(ctx, canvas.width, canvas.height, phase % 1, params, false, 5, tile, 1);
 }
 function schedule() {
   cancelAnimationFrame(frame);
   last = 0;
   draw();
-  if (!animated || !visible || document.hidden || reduced.matches) return;
+  if (!animated || !visible || document.hidden) return;
   const tick = (now: number) => {
     if (!last) last = now;
     if (now - last >= 1000 / 24) {
@@ -50,7 +50,6 @@ function applyTag(value: unknown) {
   player.stop();
   params = nextParams; tag = next; input.value = next; phase = 0;
   drawTile(tile.getContext("2d")!, params);
-  $("tagLabel").textContent = tag;
   canvas.setAttribute("aria-label", "FilePrint fingerprint for " + tag);
   input.removeAttribute("aria-invalid");
   $("tagError").textContent = "";
@@ -76,10 +75,10 @@ play.addEventListener("click", async () => {
 ($("volume") as HTMLInputElement).addEventListener("input", e => player.setVolume(Number((e.target as HTMLInputElement).value) / 100));
 motion.addEventListener("click", () => {
   animated = !animated;
-  motion.textContent = animated ? "Pause animation" : "Animate";
+  motion.textContent = animated ? "Pause animation" : "Resume animation";
   motion.setAttribute("aria-pressed", String(animated)); schedule();
 });
-new IntersectionObserver(entries => { visible = entries.some(e => e.isIntersecting); schedule(); if (!visible) player.stop(); }).observe(canvas);
+new IntersectionObserver(entries => { visible = entries.some(e => e.isIntersecting); schedule(); }).observe(canvas);
 document.addEventListener("visibilitychange", () => { if (document.hidden) player.stop(); schedule(); });
 reduced.addEventListener("change", schedule);
 window.addEventListener("pagehide", () => { player.dispose(); cancelAnimationFrame(frame); });
@@ -88,6 +87,38 @@ $("copyPath").addEventListener("click", async () => {
   catch { $("copyStatus").textContent = "Select and copy the path above."; }
 });
 applyTag(tag);
-// The video stays absent until a real source is supplied.
+// Keep the reserved video space until the marketing video is supplied.
 const video = document.querySelector<HTMLVideoElement>("#marketingVideo");
-if (video?.dataset.src) { video.src = video.dataset.src; $("film").hidden = false; }
+if (video?.dataset.src) { video.src = video.dataset.src; video.hidden = false; $("videoPlaceholder").hidden = true; }
+const audioCanvas = $("audioCanvas") as HTMLCanvasElement;
+const audioDraw = audioCanvas.getContext("2d")!;
+const samples = new Uint8Array(2048);
+let waveform = true, audioFrame = 0, audioVisible = true;
+const beats = Array.from({length:16}, () => { const beat = document.createElement("span"); $("beats").append(beat); return beat; });
+function drawAudio() {
+  cancelAnimationFrame(audioFrame);
+  const w = audioCanvas.width, h = audioCanvas.height;
+  audioDraw.clearRect(0, 0, w, h);
+  audioDraw.strokeStyle = "#303030"; audioDraw.lineWidth = 1; audioDraw.beginPath();
+  for (let x = 0; x < w; x += 64) { audioDraw.moveTo(x,0); audioDraw.lineTo(x,h); }
+  for (let y = 0; y <= h; y += h/4) { audioDraw.moveTo(0,y); audioDraw.lineTo(w,y); }
+  audioDraw.stroke();
+  const playing = player.state === "playing";
+  if (playing) player.sample(samples, waveform); else samples.fill(waveform ? 128 : 0);
+  audioDraw.strokeStyle = playing ? "#e2e2e2" : "#696969"; audioDraw.fillStyle = "#bcbcbc"; audioDraw.lineWidth = 2;
+  if (waveform) {
+    audioDraw.beginPath();
+    for(let i=0;i<512;i++) { const x=i/511*w,y=h/2+Math.max(-1,Math.min(1,(samples[i]-128)/128*3))*h*.42; i ? audioDraw.lineTo(x,y) : audioDraw.moveTo(x,y); }
+    audioDraw.stroke();
+  } else {
+    for(let i=0;i<128;i++) { const bin=Math.min(1023,Math.round(Math.pow(1024,i/127)-1)); const height=Math.max(1,samples[bin]/255*(h-8)); audioDraw.fillRect(i*w/128,h-height,w/128-3,height); }
+  }
+  beats.forEach((b,i)=>b.classList.toggle("active",playing && i===player.step));
+  if(playing && audioVisible && !document.hidden) audioFrame=requestAnimationFrame(drawAudio);
+}
+$("displayMode").addEventListener("click",()=>{waveform=!waveform;$("displayMode").textContent=waveform?"Waveform":"Spectrum";audioCanvas.setAttribute("aria-label",waveform?"Live audio waveform":"Live audio spectrum");drawAudio();});
+player.subscribe(drawAudio);
+new IntersectionObserver(entries=>{audioVisible=entries.some(e=>e.isIntersecting);drawAudio();}).observe(audioCanvas);
+document.addEventListener("visibilitychange",drawAudio);
+window.addEventListener("pagehide",()=>cancelAnimationFrame(audioFrame));
+drawAudio();
