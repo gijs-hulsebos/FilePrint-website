@@ -5,6 +5,8 @@ import { AudioPlayer } from "../vendor/fileprint/audio";
 const $ = (id: string) => document.getElementById(id)!;
 const canvas = $("fingerprint") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
+const pfp = $("pfp") as HTMLCanvasElement;
+const pfpCtx = pfp.getContext("2d")!;
 const tile = document.createElement("canvas");
 tile.width = tile.height = 512;
 const input = $("tagInput") as HTMLInputElement;
@@ -19,6 +21,7 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)");
 
 function draw() {
   drawScene(ctx, canvas.width, canvas.height, phase % 1, params, false, 5, tile, 1);
+  drawScene(pfpCtx, 512, 512, phase % 1, params, false, 1, tile, 1);
 }
 function schedule() {
   cancelAnimationFrame(frame);
@@ -65,6 +68,8 @@ document.querySelectorAll<HTMLButtonElement>("[data-tag]").forEach(b => b.addEve
 player.subscribe(() => {
   play.textContent = player.state === "loading" ? "Cancel" : player.state === "playing" ? "Stop sound" : "Play sound";
   play.setAttribute("aria-pressed", String(player.state === "playing"));
+  $("demoPlay").textContent = play.textContent;
+  $("demoPlay").setAttribute("aria-pressed", String(player.state === "playing"));
   $("audioStatus").textContent = player.state === "loading" ? "Generating audio…" : player.state === "playing" ? "Playing · 8.07 s loop" : "";
 });
 play.addEventListener("click", async () => {
@@ -78,7 +83,9 @@ motion.addEventListener("click", () => {
   motion.textContent = animated ? "Pause animation" : "Resume animation";
   motion.setAttribute("aria-pressed", String(animated)); schedule();
 });
-new IntersectionObserver(entries => { visible = entries.some(e => e.isIntersecting); schedule(); }).observe(canvas);
+const visibleVisuals = new Set<Element>();
+const visualObserver = new IntersectionObserver(entries => { for (const e of entries) { if (e.isIntersecting) visibleVisuals.add(e.target); else visibleVisuals.delete(e.target); } visible = visibleVisuals.size > 0; schedule(); });
+visualObserver.observe(canvas); visualObserver.observe(pfp);
 document.addEventListener("visibilitychange", () => { if (document.hidden) player.stop(); schedule(); });
 reduced.addEventListener("change", schedule);
 window.addEventListener("pagehide", () => { player.dispose(); cancelAnimationFrame(frame); });
@@ -122,3 +129,12 @@ new IntersectionObserver(entries=>{audioVisible=entries.some(e=>e.isIntersecting
 document.addEventListener("visibilitychange",drawAudio);
 window.addEventListener("pagehide",()=>cancelAnimationFrame(audioFrame));
 drawAudio();
+$("demoPlay").addEventListener("click", () => play.click());
+for (const id of ["volume", "demoVolume"]) {
+  ($(id) as HTMLInputElement).addEventListener("input", e => {
+    const value = (e.target as HTMLInputElement).value;
+    ($("volume") as HTMLInputElement).value = value;
+    ($("demoVolume") as HTMLInputElement).value = value;
+    player.setVolume(Number(value) / 100);
+  });
+}
