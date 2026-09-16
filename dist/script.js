@@ -1,7 +1,49 @@
-const canvas=document.querySelector('#fingerprint'),ctx=canvas.getContext('2d');const tagButton=document.querySelector('#tagButton'),tagMenu=document.querySelector('#tagMenu'),tagLabel=document.querySelector('#tagLabel'),play=document.querySelector('#playButton'),wave=document.querySelector('#wave');let current='#nature/fungi/mycelium',audioCtx,oscillators=[];
-for(let i=0;i<48;i++){const bar=document.createElement('i');bar.style.height=`${5+Math.abs(Math.sin(i*.77))*18}px`;wave.appendChild(bar)}
-function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}function random(seed){return()=>((seed=Math.imul(1664525,seed)+1013904223>>>0)/4294967296)}
-function draw(tag){const r=random(hash(tag)),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);const hue=248+Math.floor(r()*45);const grad=ctx.createRadialGradient(w/2,h/2,20,w/2,h/2,w*.55);grad.addColorStop(0,`hsla(${hue},90%,66%,.18)`);grad.addColorStop(1,'transparent');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);ctx.save();ctx.translate(w/2,h/2);ctx.globalCompositeOperation='screen';const arms=5+Math.floor(r()*4),rings=22;for(let ring=0;ring<rings;ring++){const radius=18+ring*10.6;ctx.beginPath();for(let a=0;a<=Math.PI*2+.04;a+=.035){const ripple=Math.sin(a*arms+ring*.72)*12+Math.sin(a*(arms-2)-ring*.31)*7;const jitter=(r()-.5)*2.8;const rr=radius+ripple*(ring/rings)+jitter;const x=Math.cos(a)*rr,y=Math.sin(a)*rr;if(a===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.closePath();ctx.strokeStyle=`hsla(${hue+ring*1.9},${65+ring}%,${55+ring*.7}%,${.12+ring*.016})`;ctx.lineWidth=1+ring*.035;ctx.stroke()}for(let i=0;i<50;i++){const a=r()*Math.PI*2,rr=45+r()*190;ctx.fillStyle=`hsla(${hue+35},90%,75%,${.2+r()*.5})`;ctx.beginPath();ctx.arc(Math.cos(a)*rr,Math.sin(a)*rr,1+r()*2.2,0,7);ctx.fill()}ctx.restore();document.querySelector('.float-one strong').textContent=hash(tag).toString(16).toUpperCase().padStart(8,'0').slice(0,4)+'—'+hash(tag+'v').toString(16).toUpperCase().slice(0,4);document.querySelector('.float-two strong').textContent=tag.split('/').slice(0,2).join(' / ').replace('#','')}
-draw(current);tagButton.addEventListener('click',()=>tagMenu.classList.toggle('open'));document.querySelectorAll('.tag-menu button').forEach(b=>b.addEventListener('click',()=>{current=b.dataset.tag;tagButton.firstChild.textContent=current+' ';tagLabel.textContent=current;tagMenu.classList.remove('open');draw(current);stopSound()}));document.addEventListener('click',e=>{if(!tagButton.contains(e.target)&&!tagMenu.contains(e.target))tagMenu.classList.remove('open')});
-function stopSound(){oscillators.forEach(o=>{try{o.stop()}catch{}});oscillators=[];play.textContent='▶';wave.classList.remove('playing')}function startSound(){audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const r=random(hash(current)),root=130+r()*80,scale=[1,1.125,1.25,1.5,1.667,2];[0,.14,.29,.48].forEach((delay,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=['sine','triangle','sine','square'][Math.floor(r()*4)];o.frequency.value=root*scale[Math.floor(r()*scale.length)];g.gain.setValueAtTime(0,audioCtx.currentTime+delay);g.gain.linearRampToValueAtTime(.055,audioCtx.currentTime+delay+.03);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+delay+.75);o.connect(g).connect(audioCtx.destination);o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+.8);oscillators.push(o)});play.textContent='■';wave.classList.add('playing');setTimeout(stopSound,1100)}play.addEventListener('click',()=>oscillators.length?stopSound():startSound());
-document.querySelector('#copyPath').addEventListener('click',async e=>{const b=e.currentTarget,s=b.querySelector('span');try{await navigator.clipboard.writeText(b.dataset.path);s.textContent='Copied ✓';setTimeout(()=>s.textContent='Copy',1600)}catch{s.textContent='Select & copy'}});
+const canvas = document.querySelector('#fingerprint');
+const ctx = canvas.getContext('2d');
+const select = document.querySelector('#tagSelect');
+const play = document.querySelector('#playButton');
+let audioCtx, voices = [], timer;
+function hash(s) { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; }
+function random(seed) { return () => ((seed = (Math.imul(1664525, seed) + 1013904223) >>> 0) / 4294967296); }
+function draw(tag) {
+  const r = random(hash(tag)); ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save(); ctx.translate(380, 310);
+  const arms = 5 + Math.floor(r() * 4);
+  for (let ring = 0; ring < 22; ring++) {
+    ctx.beginPath();
+    for (let a = 0; a <= Math.PI * 2 + .04; a += .035) {
+      const radius = 18 + ring * 10.6 + (Math.sin(a * arms + ring * .72) * 12 + Math.sin(a * (arms - 2) - ring * .31) * 7) * ring / 22;
+      const x = Math.cos(a) * radius, y = Math.sin(a) * radius;
+      if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath(); ctx.strokeStyle = 'rgba(220,220,220,' + (.22 + ring * .024) + ')'; ctx.lineWidth = 1.3; ctx.stroke();
+  }
+  ctx.restore(); document.querySelector('#tagLabel').textContent = tag;
+}
+function stop() {
+  clearTimeout(timer); voices.forEach(o => { try { o.stop(); } catch {} }); voices = [];
+  play.textContent = 'Play sound'; play.setAttribute('aria-pressed', 'false');
+}
+play.addEventListener('click', async () => {
+  if (voices.length) return stop();
+  try {
+    audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+    await audioCtx.resume();
+    const r = random(hash(select.value)), root = 130 + r() * 80, scale = [1, 1.125, 1.25, 1.5, 1.667, 2];
+    for (const delay of [0, .14, .29, .48]) {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain(), t = audioCtx.currentTime + delay;
+      o.type = 'sine'; o.frequency.value = root * scale[Math.floor(r() * scale.length)];
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.05, t + .03); g.gain.exponentialRampToValueAtTime(.001, t + .75);
+      o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t + .8); voices.push(o);
+    }
+    play.textContent = 'Stop sound'; play.setAttribute('aria-pressed', 'true'); timer = setTimeout(stop, 1300);
+  } catch { play.textContent = 'Audio unavailable'; }
+});
+select.addEventListener('change', () => { stop(); draw(select.value); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
+document.querySelector('#copyPath').addEventListener('click', async () => {
+  const status = document.querySelector('#copyStatus');
+  try { await navigator.clipboard.writeText('.obsidian/plugins/fileprint/'); status.textContent = 'Folder path copied.'; }
+  catch { status.textContent = 'Select and copy the folder path above.'; }
+});
+draw(select.value);
